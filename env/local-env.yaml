@@ -1,3 +1,0 @@
-FLASK_APP: app
-REDIS_URL: redis://
-URL_ROOT: http://localhost:5000

@@ -2,85 +2,96 @@
 
 Frederick, Shane (2005). "Cognitive Reflection and Decision Making". Journal of Economic Perspectives. 19 (4): 25–42. https://www.aeaweb.org/articles?id=10.1257/089533005775196732.
 
-A CRT branch contains a list of pages testing CRT items. A CRT item is a 
-dictionary.
+Examples
+--------
 
-CRT item dictionary
--------------------
-var : string
-    Variable name.
-gen_question : callable
-    Callable which takes a CRT page and generates a CRT question.
-correct : must be comparable with == to CRT question data
-    The correct response.
-intuitive: must be comparable with == to CRT question data
-    The intuitive response.
+```python
+from hemlock_crt import crt
+
+from hemlock import Page, push_app_context
+
+app = push_app_context()
+
+Page(*crt('batball', 'lilypads', 'widgets')).preview()
+```
 """
 
-from hemlock import *
+from hemlock import Embedded, Input, Submit as S
 
-def CRT(crt_b, *items):
-    """Add a CRT to a branch
+def crt(*items):
+    """
+    Parameters
+    ----------
+    \*items : str
+        The names of CRT items.
+
+    Returns
+    -------
+    CRT questions : list of `hemlock.Question`
+    """
+    return [crt_items[item]() for item in items]
+
+crt_items = {}
+
+def register_crt_item(key, correct, intuitive):
+    """
+    Register a new CRT item.
+
+    Parameters
+    ----------
+    key : str
+        Name of the CRT item.
+
+    correct : 
+        The correct answer.
+
+    intuitive :
+        The intuitive answer.
+    """
+    def inner(func):
+        def gen_question():
+            question = func()
+            question.data_rows = -1
+            question.submit.append(S(_assess_response, correct, intuitive))
+            return question
+        crt_items[key] = gen_question
+        return gen_question
     
-    Compute performance summary statistics when last CRT page is submitted.
+    return inner
+
+def _assess_response(question, correct, intuitive):
     """
-    crt_pages = [gen_page(crt_b, item) for item in items]
-    Submit(crt_b.pages[-1], summary_stats, args=[crt_b, crt_pages])
-
-def gen_page(crt_b, item):
-    """Generate CRT page
-    
-    Assess the response when the CRT page is submitted.
+    Add embedded data to the CRT question's page indicating if the answer was 
+    1) correct, 2) intuitive.
     """
-    var = item.get('var')
-    crt_p = Page(crt_b, name=var)
-    crt_p.timer.var = '{}Time'.format(var)
-    crt_p.timer.all_rows = True
-    crt_q = item['gen_question']()
-    crt_q.page, crt_q.var, crt_q.all_rows = crt_p, var, True
-    Submit(crt_p, assess_response, args=[item])
-    return crt_p
-
-def assess_response(crt_p, item):
-    """Assess CRT question response
-
-    Attach embedded data to the CRT page indicating:
-    1. Whether the response was correct.
-    2. Whether the response was intuitive.
-    """
-    data = crt_p.questions[0].data
-    var = item.get('var')
-    Embedded(
-        crt_p, 
-        var='{}Correct'.format(var), 
-        data=int(item.get('correct') == data),
-        all_rows=True
-    )
-    Embedded(
-        crt_p, 
-        var='{}Intuitive'.format(var), 
-        data=int(item.get('intuitive') == data),
-        all_rows=True
-    )
-
-def summary_stats(last_p, crt_b, crt_pages):
-    """Compute performance summary statistics
-
-    Summary statistics are:
-    1. Total correct.
-    2. Percent correct.
-    3. Total intuitive.
-    4. Percent intuitive.
-    """
-    correct = sum([crt_p.embedded[0].data for crt_p in crt_pages])
-    intuitive = sum([crt_p.embedded[1].data for crt_p in crt_pages])
-    sum_stats = {
-        'CRT.TotalCorrect': correct,
-        'CRT.PctCorrect': 100.0* correct / len(crt_pages),
-        'CRT.TotalIntuitive': intuitive,
-        'CRT.PctIntuitive': 100.0 * intuitive / len(crt_pages)
-    }
-    [
-        Embedded(crt_b, var=var, data=data, all_rows=True)
-        for var, data in sum_stats.items()
+    page = question.page
+    prev_assessment = [
+        e for e in page.embedded 
+        if e.var in [question.var+'Correct', question.var+'Intuitive']
     ]
+    [page.embedded.remove(e) for e in prev_assessment]
+    page.embedded += [
+        Embedded(
+            question.var+'Correct', 
+            int(correct==type(correct)(question.data)),
+            data_rows=-1
+        ),
+        Embedded(
+            question.var+'Intuitive',
+            int(intuitive==type(intuitive)(question.data)),
+            data_rows=-1
+        )
+    ]
+
+@register_crt_item('batball', correct=.05, intuitive=.10)
+def bat_ball():
+    return Input(
+        '''
+        <p>A bat and a ball cost $1.10 in total. The bat costs $1 more than 
+        the ball.</p>
+        <p>How much does the ball cost?</p>
+        ''',
+        var='CRT.Batball',
+        append='cents',
+        input_type='number'
+    )

@@ -1,1 +1,2 @@
-hemlock-survey
+hemlock-survey>=0.0.19
+pyyaml>=5.3.1
