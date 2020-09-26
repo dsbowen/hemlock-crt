@@ -7,9 +7,7 @@ from hemlock import Branch, Page, Label, route
 @route('/survey')
 def start():
     return Branch(
-        Page(
-            *crt('batball')
-        ),
+        *crt(page=True),
         Page(
             Label('<p>The End!</p>'),
             terminal=True
