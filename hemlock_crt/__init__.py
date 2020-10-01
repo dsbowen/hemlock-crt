@@ -15,7 +15,7 @@ Page(*crt()).preview()
 ```
 """
 
-from hemlock import Binary, Check, Choice, Embedded, Input, Page, Validate as V, Submit as S
+from hemlock import Binary, Check, Choice, Debug as D, Embedded, Input, Page, Validate as V, Submit as S
 
 import random
 
@@ -48,7 +48,12 @@ def crt(*items, page=False, require=False, shuffle=False):
             item.validate.append(V.require())
     if page:
         items = [
-            Page(item, name=item.var, timer_var=item.var+'Time') 
+            Page(
+                item, 
+                name=item.var, 
+                timer_var=item.var+'Time', 
+                debug=[D.debug_questions(), D.forward()]
+            )
             for item in items
         ]
     if shuffle:
@@ -109,6 +114,13 @@ def _assess_response(question, correct, intuitive):
         )
     ]
 
+def _debug_functions(correct, intuitive):
+    return [
+        D.send_keys(),
+        D.send_keys(str(intuitive), p_exec=.7),
+        D.send_keys(str(correct), p_exec=.3)
+    ]
+
 # https://www.aeaweb.org/articles?id=10.1257/089533005775196732
 @register(correct=5., intuitive=10.)
 def bat_ball():
@@ -118,7 +130,8 @@ def bat_ball():
         the ball.</p>
         <p>How many cents does the ball cost?</p>
         ''',
-        var='CRT_BatBall', append='cents', input_type='number'
+        var='CRT_BatBall', append='cents', input_type='number',
+        debug=_debug_functions(5, 10)
     )
 
 @register(correct=5., intuitive=100.)
@@ -128,7 +141,8 @@ def widgets():
         <p>If it takes 5 machines 5 minutes to make 5 widgets, how many 
         minutes would it take 100 machines to make 100 widgets?</p>
         ''',
-        var='CRT_Widgets', append='minutes', input_type='number'
+        var='CRT_Widgets', append='minutes', input_type='number',
+        debug=_debug_functions(5, 100)
     )
 
 @register(correct=47., intuitive=24.)
@@ -140,7 +154,8 @@ def lily_pads():
         entire lake, how many days would it take for the patch to cover half 
         of the lake?</p>
         ''',
-        var='CRT_LilyPads', append='days', input_type='number'
+        var='CRT_LilyPads', append='days', input_type='number',
+        debug=_debug_functions(47, 24)
     )
 
 # https://dataverse.harvard.edu/file.xhtml?persistentId=doi:10.7910/DVN/BPCDH5/X7UQGX
@@ -162,7 +177,8 @@ def sun_tea():
         would it take for the tea to reach half of the final 
         concentration?</p>
         ''',
-        var='CRT_SunTea', append='hours', input_type='number'
+        var='CRT_SunTea', append='hours', input_type='number',
+        debug=_debug_functions(5, 3)
     )
 
 @register(correct=-1, intuitive=1)
@@ -172,9 +188,9 @@ def green_round():
         <p>In a box, no green things are round, and all round things are large. What can we conclude?</p>
         ''',
         [
-            Choice('No green things are large', value=1),
-            Choice('Some green things are not large', value=0),
-            Choice('Neither of the above', value=-1)
+            ('No green things are large', 1),
+            ('Some green things are not large', 0),
+            ('Neither of the above', -1)
         ],
         var='CRT_GreenRound'
     )
@@ -304,7 +320,8 @@ def nurses():
         how many minutes would it take 200 nurses to measure the blood of 200 
         patients?</p>
         ''',
-        var='CRT_Nurses', append='minutes', input_type='number'
+        var='CRT_Nurses', append='minutes', input_type='number',
+        debug=_debug_functions(2, 200)
     )
 
 @register(correct=2.25, intuitive=2.5)
@@ -314,7 +331,8 @@ def soup_salad():
         <p>Soup and salad cost $5.50 in total. The soup costs a dollar more 
         than the salad. How much does the salad cost?</p>
         ''',
-        var='CRT_SoupSalad', prepend='$', input_type='number', step=.01
+        var='CRT_SoupSalad', prepend='$', input_type='number', step=.01,
+        debug=_debug_functions(2.25, 2.5)
     )
 
 # http://www.keithstanovich.com/Site/Research_on_Reasoning_files/Toplak_West_Stanovich_14.pdf
@@ -326,7 +344,8 @@ def drinking_water():
         drink one barrel of water in 12 days, how many days would it take 
         them to drink one barrel of water together?</p>
         ''',
-        var='CRT_DrinkingWater', append='days', input_type='number'
+        var='CRT_DrinkingWater', append='days', input_type='number',
+        debug=_debug_functions(4, 9)
     )
 
 @register(correct=29., intuitive=30.)
@@ -336,7 +355,8 @@ def students():
         <p> Jerry received both the 15th highest and the 15th lowest mark in 
         the class. How many students are in the class?</p>
         ''',
-        var='CRT_Students', append='students', input_type='number'
+        var='CRT_Students', append='students', input_type='number',
+        debug=_debug_functions(29, 30)
     )
 
 @register(correct=20., intuitive=10.)
@@ -345,7 +365,8 @@ def pig():
         '''
         <p>A man buys a pig for $60, sells it for $70, buys it back for $80, and sells it finally for $90. How much has he made?</p>
         ''',
-        var='CRT_Pig', prepend='$', input_type='number'
+        var='CRT_Pig', prepend='$', input_type='number',
+        debug=_debug_functions(20, 10)
     )
 
 @register(correct='loss', intuitive='gain')
