@@ -51,7 +51,7 @@ def crt(*items, page=False, require=False, shuffle=False):
             Page(
                 item, 
                 name=item.var, 
-                timer_var=item.var+'Time', 
+                timer=(item.var+'Time', -1), 
                 debug=[D.debug_questions(), D.forward()]
             )
             for item in items
@@ -130,7 +130,8 @@ def bat_ball():
         the ball.</p>
         <p>How many cents does the ball cost?</p>
         ''',
-        var='CRT_BatBall', append='cents', input_type='number',
+        var='CRT_BatBall', append='cents', 
+        extra_attrs=dict(type='number', min=0, max=110, step='any'),
         debug=_debug_functions(5, 10)
     )
 
@@ -141,7 +142,8 @@ def widgets():
         <p>If it takes 5 machines 5 minutes to make 5 widgets, how many 
         minutes would it take 100 machines to make 100 widgets?</p>
         ''',
-        var='CRT_Widgets', append='minutes', input_type='number',
+        var='CRT_Widgets', append='minutes',
+        extra_attrs=dict(type='number', min=0, step='any'),
         debug=_debug_functions(5, 100)
     )
 
@@ -154,7 +156,8 @@ def lily_pads():
         entire lake, how many days would it take for the patch to cover half 
         of the lake?</p>
         ''',
-        var='CRT_LilyPads', append='days', input_type='number',
+        var='CRT_LilyPads', append='days', 
+        extra_attrs=dict(type='number', min=0, max=48, step='any'),
         debug=_debug_functions(47, 24)
     )
 
@@ -177,7 +180,8 @@ def sun_tea():
         would it take for the tea to reach half of the final 
         concentration?</p>
         ''',
-        var='CRT_SunTea', append='hours', input_type='number',
+        var='CRT_SunTea', append='hours', 
+        extra_attrs=dict(type='number', min=0, max=6, step='any'),
         debug=_debug_functions(5, 3)
     )
 
@@ -320,7 +324,8 @@ def nurses():
         how many minutes would it take 200 nurses to measure the blood of 200 
         patients?</p>
         ''',
-        var='CRT_Nurses', append='minutes', input_type='number',
+        var='CRT_Nurses', append='minutes', 
+        extra_attrs=dict(type='number', min=0, step='any'),
         debug=_debug_functions(2, 200)
     )
 
@@ -331,7 +336,8 @@ def soup_salad():
         <p>Soup and salad cost $5.50 in total. The soup costs a dollar more 
         than the salad. How much does the salad cost?</p>
         ''',
-        var='CRT_SoupSalad', prepend='$', input_type='number', step=.01,
+        var='CRT_SoupSalad', prepend='$', 
+        extra_attrs=dict(type='number', min=0, max=5.5, step=.01),
         debug=_debug_functions(2.25, 2.5)
     )
 
@@ -344,7 +350,8 @@ def drinking_water():
         drink one barrel of water in 12 days, how many days would it take 
         them to drink one barrel of water together?</p>
         ''',
-        var='CRT_DrinkingWater', append='days', input_type='number',
+        var='CRT_DrinkingWater', append='days', 
+        extra_attrs=dict(type='number', min=0, step='any'),
         debug=_debug_functions(4, 9)
     )
 
@@ -355,7 +362,8 @@ def students():
         <p> Jerry received both the 15th highest and the 15th lowest mark in 
         the class. How many students are in the class?</p>
         ''',
-        var='CRT_Students', append='students', input_type='number',
+        var='CRT_Students', append='students', 
+        extra_attrs=dict(type='number', min=1),
         debug=_debug_functions(29, 30)
     )
 
@@ -363,9 +371,10 @@ def students():
 def pig():
     return Input(
         '''
-        <p>A man buys a pig for $60, sells it for $70, buys it back for $80, and sells it finally for $90. How much has he made?</p>
+        <p>A man buys a pig for $60, sells it for $70, buys it back for $80, 
+        and sells it finally for $90. How much has he made?</p>
         ''',
-        var='CRT_Pig', prepend='$', input_type='number',
+        var='CRT_Pig', prepend='$', extra_attrs=dict(type='number'),
         debug=_debug_functions(20, 10)
     )
 
