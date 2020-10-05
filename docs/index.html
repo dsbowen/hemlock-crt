@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="None">
+  
+  
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <title>Hemlock-CRT</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  <link href="css/extra.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Home";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="js/jquery-2.1.1.min.js" defer></script>
+  <script src="js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> Hemlock-CRT</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quickstart">Quickstart</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#citations">Citations</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#license">License</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="api/">API</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="items/">Items</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">Hemlock-CRT</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/dsbowen/hemlock-crt/edit/master/docs_md/index.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="hemlock-crt">Hemlock-CRT</h1>
+<p>Hemlock-CRT is a <a href="https://dsbowen.github.io/hemlock" target="_blank">hemlock</a> extension for adding a cognitive reflection test to hemlock projects.</p>
+<h2 id="installation">Installation</h2>
+<p>With hemlock-CLI (recommended):</p>
+<pre><code>$ hlk install hemlock-crt
+</code></pre>
+
+<p>With pip:</p>
+<pre><code>$ pip install hemlock-crt
+</code></pre>
+
+<h2 id="quickstart">Quickstart</h2>
+<p>In this example, we add a CRT with the bat and ball, lily pads, widgets,
+and students problem. Then we display the results to the participant.</p>
+<p>In <code>survey.py</code>:</p>
+<pre><code class="python">from flask_login import current_user
+from hemlock import Branch, Page, Label, route
+from hemlock_crt import crt
+
+@route('/survey')
+def start():
+    return Branch(
+        *crt('bat_ball', 'lily_pads', 'widgets', 'students', page=True),
+        Page(
+            Label(compile=display_score),
+            terminal=True
+        )
+    )
+
+def display_score(label):
+    label.label = '''
+    &lt;p&gt;You gave {} correct and {} intuitive answers out of {} CRT questions.
+    &lt;/p&gt;
+    '''.format(
+        current_user.g['CRT_Correct'], 
+        current_user.g['CRT_Intuitive'], 
+        current_user.g['CRT_Total']
+    )
+</code></pre>
+
+<p><code>app.py</code> is standard from the hemlock template.</p>
+<p>Run with:</p>
+<pre><code class="bash">hlk serve
+</code></pre>
+
+<p>or</p>
+<pre><code class="bash">python app.py
+</code></pre>
+
+<h2 id="citations">Citations</h2>
+<pre><code>@software{bowen2020hemlock-crt,
+  author = {Dillon Bowen},
+  title = {Hemlock-CRT},
+  url = {https://dsbowen.github.io/hemlock-crt/},
+  date = {2020-10-05},
+}
+
+@article{frederick2005cognitive,
+  title={Cognitive reflection and decision making},
+  author={Frederick, Shane},
+  journal={Journal of Economic perspectives},
+  volume={19},
+  number={4},
+  pages={25--42},
+  year={2005}
+}
+</code></pre>
+
+<h2 id="license">License</h2>
+<p>Users must cite this package in any publications which use it.</p>
+<p>It is licensed with the MIT <a href="https://github.com/dsbowen/hemlock-crt/blob/master/LICENSE">License</a>.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api/" class="btn btn-neutral float-right" title="API">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/dsbowen/hemlock-crt/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+      
+        <span style="margin-left: 15px"><a href="api/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.1.1
+Build Date UTC : 2020-10-05 22:00:43.253557+00:00
+-->

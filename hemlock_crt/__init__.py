@@ -1,20 +1,9 @@
-"""Cognitive Reflection Test (CRT)
+"""# Cognitive Reflection Test (CRT)
 
 Frederick, Shane (2005). "Cognitive Reflection and Decision Making". Journal of Economic Perspectives. 19 (4): 25–42. https://www.aeaweb.org/articles?id=10.1257/089533005775196732.
-
-Examples
---------
-
-```python
-from hemlock import Page, push_app_context
-from hemlock_crt import crt
-
-app = push_app_context()
-
-Page(*crt()).preview()
-```
 """
 
+from flask_login import current_user
 from hemlock import Binary, Check, Choice, Debug as D, Embedded, Input, Page, Validate as V, Submit as S
 
 import random
@@ -24,7 +13,8 @@ def crt(*items, page=False, require=False, shuffle=False):
     Parameters
     ----------
     \*items : str
-        The names of CRT items.
+        The names of CRT items. If no items are given, the standard 3-item CRT
+        is used. [See the full list of available items.](items.md).
 
     page : bool, default=False
         Indicates that items should be in separate pages.
@@ -41,6 +31,10 @@ def crt(*items, page=False, require=False, shuffle=False):
         List of `hemlock.Question` if not `page`, otherwise list of 
         `hemlock.Page`.
     """
+    if 'CRT_Total' not in current_user.g:
+        current_user.g.update(
+            {'CRT_Total': 0, 'CRT_Correct': 0, 'CRT_Intuitive': 0}
+        )
     items = items if items else ['bat_ball', 'widgets', 'lily_pads']
     items = [crt_items[item]() for item in items]
     if require:
@@ -68,14 +62,32 @@ def register(correct, intuitive, key=None):
 
     Parameters
     ----------
-    key : str
-        Name of the CRT item.
-
     correct : 
         The correct answer.
 
     intuitive :
         The intuitive answer.
+
+    key : str
+        Name of the CRT item.
+
+    Examples
+    --------
+    ```python
+    from hemlock_crt import register
+
+    @register(correct=5., intuitive=10.)
+    def bat_ball():
+    \    return Input(
+    \        '''
+    \        <p>A bat and a ball cost $1.10 in total. The bat costs $1 more 
+    \        than the ball.</p>
+    \        <p>How many cents does the ball cost?</p>
+    \        ''',
+    \        var='CRT_BatBall', append='cents', 
+    \        type='number', min=0, max=110
+    \    )
+    ```
     """
     def inner(func):
         def gen_question():
@@ -101,15 +113,22 @@ def _assess_response(question, correct, intuitive):
     [page.embedded.remove(e) for e in prev_assessment]
     data = question.data
     data_null = data in (None, '')
+    correct_answer = 0 if data_null else int(correct==type(correct)(data))
+    intuitive_answer = (
+        0 if data_null else int(intuitive==type(intuitive)(data))
+    )
+    current_user.g['CRT_Total'] += 1
+    current_user.g['CRT_Correct'] += correct_answer
+    current_user.g['CRT_Intuitive'] += intuitive_answer
     page.embedded += [
         Embedded(
             question.var+'Correct', 
-            None if data_null else int(correct==type(correct)(data)),
+            None if data_null else correct_answer,
             data_rows=-1
         ),
         Embedded(
             question.var+'Intuitive',
-            None if data_null else int(intuitive==type(intuitive)(data)),
+            None if data_null else intuitive_answer,
             data_rows=-1
         )
     ]
@@ -131,7 +150,7 @@ def bat_ball():
         <p>How many cents does the ball cost?</p>
         ''',
         var='CRT_BatBall', append='cents', 
-        extra_attrs=dict(type='number', min=0, max=110, step='any'),
+        type='number', min=0, max=110,
         debug=_debug_functions(5, 10)
     )
 
@@ -143,7 +162,7 @@ def widgets():
         minutes would it take 100 machines to make 100 widgets?</p>
         ''',
         var='CRT_Widgets', append='minutes',
-        extra_attrs=dict(type='number', min=0, step='any'),
+        type='number', min=0, step='any',
         debug=_debug_functions(5, 100)
     )
 
@@ -157,7 +176,7 @@ def lily_pads():
         of the lake?</p>
         ''',
         var='CRT_LilyPads', append='days', 
-        extra_attrs=dict(type='number', min=0, max=48, step='any'),
+        type='number', min=0, max=48, step='any',
         debug=_debug_functions(47, 24)
     )
 
@@ -181,7 +200,7 @@ def sun_tea():
         concentration?</p>
         ''',
         var='CRT_SunTea', append='hours', 
-        extra_attrs=dict(type='number', min=0, max=6, step='any'),
+        type='number', min=0, max=6, step='any',
         debug=_debug_functions(5, 3)
     )
 
@@ -337,7 +356,7 @@ def soup_salad():
         than the salad. How much does the salad cost?</p>
         ''',
         var='CRT_SoupSalad', prepend='$', 
-        extra_attrs=dict(type='number', min=0, max=5.5, step=.01),
+        type='number', min=0, max=5.5, step=.01,
         debug=_debug_functions(2.25, 2.5)
     )
 
@@ -351,7 +370,7 @@ def drinking_water():
         them to drink one barrel of water together?</p>
         ''',
         var='CRT_DrinkingWater', append='days', 
-        extra_attrs=dict(type='number', min=0, step='any'),
+        type='number', min=0, step='any',
         debug=_debug_functions(4, 9)
     )
 
@@ -359,11 +378,11 @@ def drinking_water():
 def students():
     return Input(
         '''
-        <p> Jerry received both the 15th highest and the 15th lowest mark in 
+        <p>Jerry received both the 15th highest and the 15th lowest mark in 
         the class. How many students are in the class?</p>
         ''',
         var='CRT_Students', append='students', 
-        extra_attrs=dict(type='number', min=1),
+        type='number', min=1,
         debug=_debug_functions(29, 30)
     )
 
@@ -374,7 +393,7 @@ def pig():
         <p>A man buys a pig for $60, sells it for $70, buys it back for $80, 
         and sells it finally for $90. How much has he made?</p>
         ''',
-        var='CRT_Pig', prepend='$', extra_attrs=dict(type='number'),
+        var='CRT_Pig', prepend='$', type='number',
         debug=_debug_functions(20, 10)
     )
 
@@ -389,9 +408,9 @@ def stock():
         Simon has:</p>
         ''',
         [
-            Choice('broken even in the stock market', value='even'),
-            Choice('is ahead of where he began', value='gain'),
-            Choice('has lost money', value='loss')
+            ('broken even in the stock market', 'even'),
+            ('is ahead of where he began', 'gain'),
+            ('has lost money', 'loss')
         ],
         var='CRT_Stock'
     )
